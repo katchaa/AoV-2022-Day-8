@@ -3,23 +3,65 @@
     <section class="flex flex-col items-center leading-loose text-center">
       <div class="text-3xl">
         <span class="i-twemoji-christmas-tree"></span>
-        Happy Holidays!
+        {{ t('happyHolidays') }}
         <span class="i-twemoji-world-map"></span>
       </div>
-      <!-- Dates - Check out locales/en.json for the key -->
-      <!-- Controls - I give you an .icon-button class if you want to use it -->
-      <!-- Flags - the current locale -->
+      <i18n-t keypath="christmasIsComing" tag="span">
+        <template #time>
+          <span>
+            {{ t('day', days) }}
+          </span>
+        </template>
+        <template #date>
+          {{ d(christmasDate, 'long') }}
+        </template>
+      </i18n-t>
+      <div>
+        <button @click="next" class="icon-button">
+          <span class="i-carbon-language"></span>
+        </button>
+      </div>
+      <div>
+        <span>
+          {{ t('language') }}
+        </span>
+      </div>
     </section>
   </main>
 </template>
 
 <script setup>
+import { computed, watchEffect, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// See the README about tricky timezone issues!
-// I figured since this is i18n-friendly, we'd wanna
-// make sure the timezones were right :-)
+const { t, d, locale, availableLocales } = useI18n()
+
 const christmasDate = new Date('2022/12/25')
+const days = computed(() => {
+  const count = christmasDate.getTime() - new Date()
+  return Math.floor(count / (1000 * 60 * 60 * 24))
+})
+
+const listCycle = list => {
+  const i = ref(0)
+
+  const next = () => {
+    if (i.value >= list.length - 1) {
+      i.value = 0
+    } else {
+      i.value++
+    }
+  }
+
+  const current = computed(() => list[i.value])
+
+  return {
+    next,
+    current,
+  }
+}
+const { current, next } = listCycle(availableLocales)
+watchEffect(() => (locale.value = current.value))
 </script>
 
 <style scoped>
